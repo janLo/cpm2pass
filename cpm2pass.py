@@ -3,42 +3,45 @@ import gzip
 import argparse
 import subprocess
 from lxml import etree
+from itertools import chain
 from cStringIO import StringIO
 
 
 class Password(object):
-    def __init__(self, host, service, user, passwd):
-        self.host = host
-        self.service = service
-        self.user = user
+    def __init__(self, path, passwd):
+        self.path = path
         self.passwd = passwd
         
     def __repr__(self):
-        return "Pass for: /" + "/".join([self.host,
-                                         self.service,
-                                         self.user])
+        return "Pass for: /" + "/".join(self.path)
 
 
-def read_passwords(filename):
+def cpm_stream(filename):
     path = os.path.abspath(os.path.expanduser(filename))
     proc = subprocess.Popen(['gpg','-d', path],stdout=subprocess.PIPE)
     assert 0 == proc.wait()
     compressed = proc.stdout.read()
-    gzip_stream = gzip.GzipFile("", mode="r", fileobj=StringIO(compressed))
+    return gzip.GzipFile("", mode="r", fileobj=StringIO(compressed))
 
+
+def read_passwords(filename):
+    gzip_stream = cpm_stream(filename)
     return etree.parse(gzip_stream)
+
+
+def iter_subnodes(node, path):
+    if node.find("./node") is not None:
+        path = path + [node.attrib["label"]]
+        return chain.from_iterable((
+            iter_subnodes(n, path) for n in node.iterfind("./node")))
+    else:
+        return [Password(path, node.attrib["label"])]
 
 
 def iter_passwords(document):
     root = document.getroot()
-    for host in root.iterfind("./node"):
-        for service in host.iterfind("./node"):
-            for user in service.iterfind("./node"):
-                for passwd in service.iterfind("./node"):
-                    yield Password(host.attrib["label"],
-                                   service.attrib["label"],
-                                   user.attrib["label"],
-                                   passwd.attrib["label"])
+    return chain.from_iterable(
+            (iter_subnodes(node, []) for node in root.iterfind("./node")))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
