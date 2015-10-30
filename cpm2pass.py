@@ -24,8 +24,11 @@ def cpm_stream(filename):
     return gzip.GzipFile("", mode="r", fileobj=StringIO(compressed))
 
 
-def read_passwords(filename):
-    gzip_stream = cpm_stream(filename)
+def read_passwords(filename, ftype):
+    if ftype == "cpm":
+        gzip_stream = cpm_stream(filename)
+    else:
+        gzip_stream = open(filename, "r")
     return etree.parse(gzip_stream)
 
 
@@ -45,10 +48,13 @@ def iter_passwords(document):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--infile", required=True, help="input file")
+    parser.add_argument("-i", "--infile", required=True,
+                        help="input file")
+    parser.add_argument("-t", "--type", required=False, choices=("cpm", "plain"),
+                        help="cpm file type (for debugging)", default="cpm")
 
     args = parser.parse_args()
 
-    doc = read_passwords(args.infile)
+    doc = read_passwords(args.infile, args.type)
     for pw in iter_passwords(doc):
         print pw
