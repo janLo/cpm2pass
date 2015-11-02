@@ -11,7 +11,7 @@ class Password(object):
     def __init__(self, path, passwd):
         self.path = path
         self.passwd = passwd
-        
+
     def __repr__(self):
         return u"Pass for: " + self.pretty_path()
 
@@ -24,7 +24,7 @@ class Password(object):
 
 def cpm_stream(filename):
     path = os.path.abspath(os.path.expanduser(filename))
-    proc = subprocess.Popen(['gpg','-d', path],stdout=subprocess.PIPE)
+    proc = subprocess.Popen(['gpg', '-d', path], stdout=subprocess.PIPE)
     assert 0 == proc.wait()
     compressed = proc.stdout.read()
     return gzip.GzipFile("", mode="r", fileobj=StringIO(compressed))
@@ -85,7 +85,6 @@ def fix_password(password):
             return password
 
 
-
 def prefix_passwd(passwd, prefix):
     passwd.path = prefix + passwd.path
     return passwd
@@ -105,11 +104,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--infile", required=True,
                         help="input file")
-    parser.add_argument("-t", "--type", required=False, choices=("cpm", "plain"),
-                        help="cpm file type (for debugging)", default="cpm")
+    parser.add_argument("-t", "--type", required=False,
+                        choices=("cpm", "plain"), default="cpm",
+                        help="cpm file type (for debugging)")
     parser.add_argument("-m", "--method", required=True,
                         choices=("simple", "manual"),
-                        help="choose which method to use to create pass entries")
+                        help=("choose which method to use to create pass",
+                              " entries"))
     parser.add_argument("-p", "--prefix", required=False,
                         help="add a prefix to all entries")
 
