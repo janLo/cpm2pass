@@ -91,6 +91,16 @@ def prefix_passwd(passwd, prefix):
     return passwd
 
 
+def import_entry(passwd):
+    print "IMPORT %s ... " % passwd.pretty_path,
+    proc = subprocess.Popen(['pass', 'insert', '--multiline', '--force',
+                             passwd.pretty_path],
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    proc.communicate(passwd.passwd.encode('utf8'))
+    proc.wait()
+    print "Done."
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--infile", required=True,
@@ -118,4 +128,4 @@ if __name__ == "__main__":
     passwds = (pwd for pwd in passwds if pwd is not None)
 
     for pw in passwds:
-        print pw.full_repr()
+        import_entry(pw)
