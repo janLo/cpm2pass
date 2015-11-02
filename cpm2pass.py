@@ -93,9 +93,9 @@ def prefix_passwd(passwd, prefix):
 
 
 def import_entry(passwd):
-    print "IMPORT %s ... " % passwd.pretty_path,
+    print "IMPORT %s ... " % passwd.pretty_path(),
     proc = subprocess.Popen(['pass', 'insert', '--multiline', '--force',
-                             passwd.pretty_path],
+                             passwd.pretty_path()],
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     proc.communicate(passwd.passwd.encode('utf8'))
     proc.wait()
@@ -111,7 +111,7 @@ if __name__ == "__main__":
                         help="cpm file type (for debugging)")
     parser.add_argument("-m", "--method", required=True,
                         choices=("simple", "manual"),
-                        help=("choose which method to use to create pass",
+                        help=("choose which method to use to create pass"
                               " entries"))
     parser.add_argument("-p", "--prefix", required=False,
                         help="add a prefix to all entries")
